@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@import "./themes/theme.css";
+
+body {
+  font-family: var(--font-family);
+  font-size: 16px;
+  line-height: 1.6;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  --sidebar-width: 260px;
+  --header-height: 64px;
+}
