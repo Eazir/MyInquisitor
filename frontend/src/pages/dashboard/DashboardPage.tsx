@@ -18,7 +18,7 @@ export function DashboardPage() {
         <p className="text-sm text-[var(--color-text-secondary)] mt-1">{t('dashboard.description')}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mb-8">
         {stats.map(s => (
           <Card key={s.label} variant="stats">
             <p className="text-sm text-[var(--color-text-secondary)] mb-1">{s.label}</p>

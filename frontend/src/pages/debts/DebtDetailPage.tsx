@@ -70,7 +70,7 @@ export function DebtDetailPage() {
       </div>
 
       <Card title={debt.name} subtitle={`${debt.current_installment}/${debt.total_installments} ${t('debts.installments')}`}>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <p className="text-sm text-[var(--color-text-secondary)]">{t('debts.totalAmount')}</p>
             <p className="text-lg font-semibold">${debt.total_amount.toFixed(2)}</p>

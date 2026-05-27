@@ -23,7 +23,7 @@ export function Card({ title, subtitle, children, variant = 'default', className
       data-variant={variant}
     >
       {title && (
-        <div className="px-8 pt-8 pb-5 border-b border-[var(--color-border)]">
+        <div className="px-6 md:px-8 pt-6 md:pt-8 pb-4 md:pb-5 border-b border-[var(--color-border)]">
           <h3 className={cn(
             'text-lg font-semibold',
             variant === 'highlight' ? 'text-white' : 'text-[var(--color-text-primary)]'
@@ -41,11 +41,11 @@ export function Card({ title, subtitle, children, variant = 'default', className
         </div>
       )}
       {!title && subtitle && (
-        <div className="px-8 pt-8 pb-4">
+        <div className="px-6 md:px-8 pt-6 md:pt-8 pb-4">
           <p className="text-sm text-[var(--color-text-secondary)]">{subtitle}</p>
         </div>
       )}
-      <div className={cn('p-8', !title && 'pt-8')}>{children}</div>
+      <div className={cn('p-6 md:p-8', !title && 'pt-6 md:pt-8')}>{children}</div>
     </div>
   );
 }

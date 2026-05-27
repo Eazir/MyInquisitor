@@ -45,8 +45,8 @@ export function Modal({ isOpen, onClose, title, size = 'md', children }: ModalPr
         sizes[size]
       )}>
         {title && (
-          <div className="flex items-center justify-between px-8 pt-8 pb-4 border-b border-[var(--color-border)]">
-            <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">{title}</h2>
+          <div className="flex items-center justify-between px-6 md:px-8 pt-6 md:pt-8 pb-4 border-b border-[var(--color-border)]">
+            <h2 className="text-lg md:text-xl font-semibold text-[var(--color-text-primary)]">{title}</h2>
             <button
               onClick={onClose}
               className="p-1.5 rounded-[var(--radius-md)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
@@ -57,7 +57,7 @@ export function Modal({ isOpen, onClose, title, size = 'md', children }: ModalPr
             </button>
           </div>
         )}
-        <div className="p-8">{children}</div>
+        <div className="p-6 md:p-8">{children}</div>
       </div>
     </div>
   );

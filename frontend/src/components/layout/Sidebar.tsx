@@ -3,7 +3,12 @@ import { cn } from '../../utils/cn';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-export function Sidebar() {
+interface SidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const { isAdmin, user, logout } = useAuth();
   const { t } = useLanguage();
 
@@ -23,9 +28,14 @@ export function Sidebar() {
 
   return (
     <aside
-      className="fixed left-0 top-0 h-full z-40 flex flex-col"
+      className={cn(
+        'fixed inset-y-0 left-0 z-40 flex flex-col',
+        'transform transition-transform duration-300 ease-in-out',
+        'w-[var(--sidebar-width)]',
+        'lg:translate-x-0',
+        open ? 'translate-x-0' : '-translate-x-full'
+      )}
       style={{
-        width: 'var(--sidebar-width)',
         backgroundColor: 'var(--color-sidebar-bg)',
         color: 'var(--color-sidebar-text)',
       }}
@@ -42,6 +52,7 @@ export function Sidebar() {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={onClose}
               className={({ isActive }) => cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-md)] text-sm font-medium transition-all duration-150',
                 isActive
@@ -59,6 +70,7 @@ export function Sidebar() {
       <div className="px-4 py-4 space-y-1 border-t border-white/10">
         <NavLink
           to="/settings"
+          onClick={onClose}
           className={({ isActive }) => cn(
             'flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-md)] text-sm font-medium transition-all duration-150',
             isActive
