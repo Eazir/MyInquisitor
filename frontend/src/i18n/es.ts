@@ -30,6 +30,7 @@ export const es = {
     switchTheme: 'Cambiar a modo {{mode}}',
     light: 'claro',
     dark: 'oscuro',
+    toggleMenu: 'Abrir menú',
   },
   auth: {
     signIn: 'Iniciar Sesión',
