@@ -1,5 +1,14 @@
 # MyInquisitor — AGENTS.md
 
+## Git workflow — MUST FOLLOW
+- **`main`**: production-ready, stable. **NEVER** modify `main` unless explicitly asked.
+- **All work on secondary branches**: `responsive`, `feature/*`, `fix/*`, etc.
+- **Branch naming**: use descriptive kebab-case (`responsive-layout`, `fix-auth-timeout`).
+- **Commits**: conventional commits (`feat:`, `fix:`, `chore:`, `refactor:`, `style:`).
+- **Pull requests**: when done, the user will request a merge to `main`. Do NOT merge unless told.
+- **Current branch**: the active branch is `responsive` (responsive layout changes).
+- Do NOT switch branches unless asked.
+
 ## Stack (verified)
 | Capa | Stack |
 |------|-------|
