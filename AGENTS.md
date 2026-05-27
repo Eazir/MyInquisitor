@@ -74,10 +74,13 @@ npm run test       # vitest run (11 tests)
 - `LanguageProvider` wraps `AuthProvider` in `App.tsx`.
 
 ## Frontend patterns
-- **Theming**: CSS variables only (e.g. `var(--color-accent)`). No hardcoded colors. Dark/light via `.theme-dark` / `.theme-light` on `<html>`.
+- **Theming**: CSS variables only (e.g. `var(--color-accent)`). No hardcoded colors. Dark/light via `data-theme` attribute on `<html>`.
+- **Super admin purple theme**: `AuthContext` toggles `.super-admin` class on `<html>` when `user?.role === 'super_admin'`. `theme.css` overrides `--color-accent` to purple (`#7c3aed` light / `#a78bfa` dark) and `--color-sidebar-active` accordingly. Instant switch on login/logout, no page reload.
+- **Responsive layout**: sidebar is a drawer overlay on mobile/tablet (< 1024px), always visible on desktop. Header has hamburger button on mobile/tablet. Breakpoint: `lg:` (1024px).
 - **CSS**: Tailwind v4 utilities. **Never** use unlayered `* { margin:0; padding:0 }` — it beats layered utility classes.
 - **`cn()` utility**: simple class joiner (`frontend/src/utils/cn.ts`).
 - **UI components** (`components/ui/`): pure presentational, no side effects. Props and CSS variables only.
+- **PageContainer**: responsive padding `p-4 md:p-6 lg:p-8`.
 - **AuthContext** exposes `setUser` publicly for SettingsPage after profile update.
 - **Toast**: `toast(message, 'success' | 'error' | 'info')` from `components/ui/Toast`. `<ToastContainer />` already in `App.tsx`.
 - **Routes**: `/register/:token` (public), `/settings` (protected), `/admin` (super_admin only via `<AdminRoute>`).
@@ -104,4 +107,8 @@ npm run test       # vitest run (11 tests)
 | `frontend/src/contexts/AuthContext.tsx` | Auth state, login/register/logout, session refresh on load |
 | `frontend/src/contexts/LanguageContext.tsx` | i18n `t()` hook |
 | `frontend/src/components/ui/Toast.tsx` | Global toast notifications |
+| `frontend/src/themes/theme.css` | CSS variables for light/dark + super admin purple palette |
+| `frontend/src/components/layout/AppLayout.tsx` | Responsive layout: sidebar drawer, header, backdrop |
+| `frontend/src/components/layout/Sidebar.tsx` | Sidebar with open/close props, transform animation |
+| `frontend/src/components/layout/Header.tsx` | Header with hamburger button, responsive full width |
 | `docs/manual-tecnico.md` | Full 10-section technical manual (995 lines) |

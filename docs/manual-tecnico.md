@@ -388,6 +388,22 @@ Definido en `App.tsx`:
 **AdminRoute** (`components/layout/AdminRoute.tsx`):
 - Igual que PrivateRoute pero verifica `isAdmin`.
 
+#### AppLayout — Layout Responsive
+
+`AppLayout` (`components/layout/AppLayout.tsx`) compone `Sidebar` + `Header` + `<Outlet />`:
+
+| Breakpoint | Ancho | Sidebar | Header |
+|-----------|-------|---------|--------|
+| Mobile | < 768px | Drawer overlay (slide-in `-translate-x-full` ↔ `translate-x-0`) | Full width con hamburguesa |
+| Tablet | 768–1024px | Drawer overlay (igual que mobile) | Full width con hamburguesa |
+| Desktop | ≥ 1024px (`lg:`) | Fijo a la izquierda (260px), siempre visible | Offset `left: 260px` |
+
+**Componentes clave**:
+- `Sidebar.tsx`: `fixed`, `z-40`, transform animado. `lg:translate-x-0` (siempre visible en desktop).
+- `Header.tsx`: `fixed top-0 left-0 right-0`. En desktop: `lg:left-[var(--sidebar-width)]`.
+- Backdrop overlay: `fixed inset-0 bg-black/50 z-30 lg:hidden`, cierra sidebar al hacer click.
+- `PageContainer.tsx`: padding responsive `p-4 md:p-6 lg:p-8`.
+
 ### 3.3 Contextos Globales
 
 #### AuthContext (`contexts/AuthContext.tsx`)
@@ -509,6 +525,28 @@ Definido en `themes/theme.css` con variables CSS:
   /* ... */
 }
 ```
+
+#### Color por Rol (Super Admin)
+
+Los super administradores ven el color de acento en **púrpura** en lugar del azul estándar. Se implementa con una clase CSS `.super-admin` en `<html>`:
+
+- `AuthContext.tsx` togglea la clase mediante `document.documentElement.classList.toggle('super-admin', user?.role === 'super_admin')`.
+- `theme.css` define los valores alternativos con la misma especificidad:
+
+```css
+.super-admin {
+  --color-accent: #7c3aed;
+  --color-accent-hover: #6d28d9;
+  --color-sidebar-active: #7c3aed;
+}
+
+[data-theme="dark"].super-admin {
+  --color-accent: #a78bfa;
+  --color-accent-hover: #c4b5fd;
+}
+```
+
+Esto afecta: botones primary, focus rings, links de auth, loading spinner, badges `info`, cards `highlight`/`stats`, y sidebar activo. El cambio es instantáneo al hacer login/logout, sin recarga de página.
 
 ---
 

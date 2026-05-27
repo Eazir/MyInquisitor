@@ -14,7 +14,7 @@ export function Header({ title, onToggleSidebar }: HeaderProps) {
 
   return (
     <header
-      className="fixed top-0 right-0 z-30 flex items-center justify-between px-4 md:px-6 lg:px-8 border-b border-[var(--color-border)] bg-[var(--color-bg-primary)] shadow-[var(--shadow-sm)] transition-all duration-300 lg:left-[var(--sidebar-width)]"
+      className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 md:px-6 lg:px-8 border-b border-[var(--color-border)] bg-[var(--color-bg-primary)] shadow-[var(--shadow-sm)] transition-all duration-300 lg:left-[var(--sidebar-width)]"
       style={{
         height: 'var(--header-height)',
       }}

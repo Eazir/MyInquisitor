@@ -39,6 +39,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('super-admin', user?.role === 'super_admin');
+  }, [user]);
+
   const login = useCallback(async (email: string, password: string) => {
     const result = await loginApi({ email, password });
     setAccessToken(result.access_token);

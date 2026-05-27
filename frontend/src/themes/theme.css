@@ -54,3 +54,14 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
   --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
 }
+
+.super-admin {
+  --color-accent: #7c3aed;
+  --color-accent-hover: #6d28d9;
+  --color-sidebar-active: #7c3aed;
+}
+
+[data-theme="dark"].super-admin {
+  --color-accent: #a78bfa;
+  --color-accent-hover: #c4b5fd;
+}
