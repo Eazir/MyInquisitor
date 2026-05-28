@@ -54,6 +54,7 @@ func (h *DebtHandler) Create(c *gin.Context) {
 
 	result, err := h.createUC.Execute(c.Request.Context(), userID, input)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -67,6 +68,7 @@ func (h *DebtHandler) List(c *gin.Context) {
 
 	result, err := h.listUC.Execute(c.Request.Context(), userID, activeOnly)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -87,6 +89,7 @@ func (h *DebtHandler) GetByID(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "debt not found")
 			return
 		}
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -113,6 +116,7 @@ func (h *DebtHandler) Update(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "debt not found")
 			return
 		}
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -128,6 +132,7 @@ func (h *DebtHandler) Delete(c *gin.Context) {
 	}
 
 	if err := h.deleteUC.Execute(c.Request.Context(), id); err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -162,6 +167,7 @@ func (h *DebtHandler) MarkAsPaid(c *gin.Context) {
 
 	result, err := h.markPaidUC.Execute(c.Request.Context(), id, year, month, input)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -178,6 +184,7 @@ func (h *DebtHandler) GetMonthlyStatus(c *gin.Context) {
 
 	result, err := h.getMonthlyStatus.Execute(c.Request.Context(), id)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}

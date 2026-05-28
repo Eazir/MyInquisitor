@@ -58,6 +58,7 @@ func (h *AccountingHandler) RecordTransaction(c *gin.Context) {
 
 	result, err := h.recordTxUC.Execute(c.Request.Context(), userID, input)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -73,6 +74,7 @@ func (h *AccountingHandler) ListTransactions(c *gin.Context) {
 
 	result, err := h.listTxUC.Execute(c.Request.Context(), userID, year, month)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -94,6 +96,7 @@ func (h *AccountingHandler) MonthlyBalance(c *gin.Context) {
 			})
 			return
 		}
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -109,6 +112,7 @@ func (h *AccountingHandler) CashFlow(c *gin.Context) {
 
 	result, err := h.cashFlowUC.Execute(c.Request.Context(), userID, start, end)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -126,6 +130,7 @@ func (h *AccountingHandler) Projections(c *gin.Context) {
 
 	result, err := h.projectionsUC.Execute(c.Request.Context(), userID, months)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -144,6 +149,7 @@ func (h *AccountingHandler) CreateCategory(c *gin.Context) {
 
 	result, err := h.createCatUC.Execute(c.Request.Context(), userID, input)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -157,6 +163,7 @@ func (h *AccountingHandler) ListCategories(c *gin.Context) {
 
 	result, err := h.listCatUC.Execute(c.Request.Context(), userID, categoryType)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -176,6 +183,7 @@ func (h *AccountingHandler) DeleteCategory(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "category not found")
 			return
 		}
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}

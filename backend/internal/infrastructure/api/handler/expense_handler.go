@@ -51,6 +51,7 @@ func (h *ExpenseHandler) Create(c *gin.Context) {
 
 	result, err := h.createUC.Execute(c.Request.Context(), userID, input)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -64,6 +65,7 @@ func (h *ExpenseHandler) List(c *gin.Context) {
 
 	result, err := h.listUC.Execute(c.Request.Context(), userID, activeOnly)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -84,6 +86,7 @@ func (h *ExpenseHandler) GetByID(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "expense not found")
 			return
 		}
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -110,6 +113,7 @@ func (h *ExpenseHandler) Update(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "expense not found")
 			return
 		}
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -125,6 +129,7 @@ func (h *ExpenseHandler) Delete(c *gin.Context) {
 	}
 
 	if err := h.deleteUC.Execute(c.Request.Context(), id); err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
@@ -158,6 +163,7 @@ func (h *ExpenseHandler) TogglePaid(c *gin.Context) {
 
 	result, err := h.togglePaidUC.Execute(c.Request.Context(), id, year, month, input)
 	if err != nil {
+		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
 	}
