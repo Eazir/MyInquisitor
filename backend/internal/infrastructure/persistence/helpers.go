@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"math"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,8 +35,12 @@ func toPGDatePtr(t *time.Time) pgtype.Date {
 }
 
 func toPGNumeric(f float64) pgtype.Numeric {
+	if math.IsNaN(f) || math.IsInf(f, 0) {
+		return pgtype.Numeric{Valid: false}
+	}
 	var n pgtype.Numeric
-	if err := n.Scan(f); err != nil {
+	s := strconv.FormatFloat(f, 'f', -1, 64)
+	if err := n.Scan(s); err != nil {
 		return pgtype.Numeric{Valid: false}
 	}
 	return n

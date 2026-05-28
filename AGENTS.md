@@ -45,6 +45,7 @@ npm run test       # vitest run (11 tests)
 - Docker maps `5433:5432`. `.env` must use port **5433** for local dev (`localhost:5433`).
 - Migrations: `.sql` files in `persistence/migrations/`. `RunMigrations()` in `migrator.go` runs on startup. Uses `schema_migrations` table to track what's been applied. Auto-detects manually-applied migrations on first run (checks if `users` table exists).
 - To start only the DB for local dev: `sudo docker-compose up -d db` from `./docker/`.
+- **pgx v5.9.2 `pgtype.Numeric.Scan()` does NOT accept `float64`**. Use `strconv.FormatFloat` to string first. All numeric conversions go through `toPGNumeric()` in `persistence/helpers.go` — the single source of truth for this mapping.
 
 ## Auth system — MUST KNOW
 - **Auth middleware** sets `c.Set("user_id", ...)` — note the exact key name. All handlers read `c.Get("user_id")`. If these don't match, the handler gets zero UUID and FK constraints fail (500).
