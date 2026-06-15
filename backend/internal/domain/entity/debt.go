@@ -19,6 +19,7 @@ type Debt struct {
 	Status             string
 	StartDate          time.Time
 	EndDate            *time.Time
+	DueDay             *int32
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }
@@ -33,4 +34,5 @@ type CreateDebtInput struct {
 	TotalInstallments int32
 	StartDate         time.Time
 	EndDate           *time.Time
+	DueDay             *int32
 }

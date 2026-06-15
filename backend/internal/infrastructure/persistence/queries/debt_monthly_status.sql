@@ -28,5 +28,15 @@ SET amount_paid = COALESCE($3, amount_paid),
 WHERE debt_id = $1 AND month = $2
 RETURNING *;
 
+-- name: ListUnpaidByUserIDAndDateRange :many
+SELECT dms.* FROM debt_monthly_status dms
+JOIN debts d ON d.id = dms.debt_id
+WHERE d.user_id = $1
+  AND d.status = 'active'
+  AND dms.month >= $2
+  AND dms.month < $3
+  AND dms.paid = false
+ORDER BY dms.month, dms.debt_id;
+
 -- name: DeleteDebtMonthlyStatus :exec
 DELETE FROM debt_monthly_status WHERE id = $1;

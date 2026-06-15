@@ -4,14 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/myinquisitor/backend/internal/domain/repository"
 	"github.com/myinquisitor/backend/internal/application/dto"
 )
 
 var (
-	ErrInvalidCredentials = errors.New("invalid email or password")
+	ErrInvalidCredentials = errors.New("invalid password")
+	ErrEmailNotFound      = errors.New("no account found with this email")
 	ErrUserInactive       = errors.New("account is inactive")
+	ErrAccountIssue       = errors.New("account error, please contact support")
 )
 
 type LoginUseCase struct {
@@ -32,7 +35,10 @@ func (uc *LoginUseCase) Execute(ctx context.Context, input dto.LoginInput) (*dto
 	user, err := uc.userRepo.GetByEmail(ctx, input.Email)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
-			return nil, ErrInvalidCredentials
+			return nil, ErrEmailNotFound
+		}
+		if strings.Contains(err.Error(), "decrypt") {
+			return nil, fmt.Errorf("%w: data decryption failed", ErrAccountIssue)
 		}
 		return nil, fmt.Errorf("get user by email: %w", err)
 	}

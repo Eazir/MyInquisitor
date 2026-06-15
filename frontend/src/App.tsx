@@ -13,6 +13,7 @@ import { DebtDetailPage } from './pages/debts/DebtDetailPage';
 import { ExpensesPage } from './pages/expenses/ExpensesPage';
 import { AccountingPage } from './pages/accounting/AccountingPage';
 import { PlanningPage } from './pages/planning/PlanningPage';
+import { MonthlyPaymentsPage } from './pages/monthly/MonthlyPaymentsPage';
 import { AdminPage } from './pages/admin/AdminPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
 import { ToastContainer } from './components/ui/Toast';
@@ -36,6 +37,7 @@ export default function App() {
                 <Route path="/expenses" element={<ExpensesPage />} />
                 <Route path="/accounting" element={<AccountingPage />} />
                 <Route path="/planning" element={<PlanningPage />} />
+                <Route path="/monthly-payments" element={<MonthlyPaymentsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route element={<AdminRoute />}>
                   <Route path="/admin" element={<AdminPage />} />

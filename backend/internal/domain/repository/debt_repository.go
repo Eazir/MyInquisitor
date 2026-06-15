@@ -23,4 +23,5 @@ type DebtMonthlyStatusRepository interface {
 	MarkAsPaid(ctx context.Context, debtID uuid.UUID, month string, amountPaid float64, notes *string) error
 	Update(ctx context.Context, status *entity.DebtMonthlyStatus) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	ListUnpaidByUserIDAndDateRange(ctx context.Context, userID uuid.UUID, start, end string) ([]entity.DebtMonthlyStatus, error)
 }

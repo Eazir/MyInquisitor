@@ -38,11 +38,32 @@ export interface CashFlowItem {
   balance: number;
 }
 
+export interface ExtraExpenseItem {
+  description: string;
+  amount: number;
+}
+
+export interface FixedExpenseItem {
+  id: string;
+  name: string;
+  amount: number;
+  frequency: string;
+  due_day: number | null;
+}
+
 export interface Projection {
   month: string;
+  month_label: string;
+  base_income: number;
+  income_modifier: number;
   projected_income: number;
-  projected_expenses: number;
-  projected_debts: number;
+  fixed_expenses: number;
+  fixed_expenses_list: FixedExpenseItem[];
+  extra_budgetary_avg: number;
+  extra_expenses_total: number;
+  extra_expenses_list: ExtraExpenseItem[];
+  debt_payments: number;
+  total_expenses: number;
   projected_balance: number;
 }
 
@@ -57,13 +78,13 @@ export interface Category {
 export const accountingApi = {
   recordTransaction: (input: CreateTransactionInput) =>
     api.post('/accounting/transactions', input).then(r => r.data.data),
-  listTransactions: (params?: { page?: number; limit?: number }) =>
+  listTransactions: (params?: { year?: number; month?: number; page?: number; limit?: number }) =>
     api.get('/accounting/transactions', { params }).then(r => r.data),
   getMonthlyBalance: (year: number, month: number) =>
     api.get(`/accounting/balance/${year}/${month}`).then(r => r.data.data),
   getCashFlow: () => api.get('/accounting/cash-flow').then(r => r.data.data),
-  getProjections: (months?: number) =>
-    api.get('/accounting/projections', { params: { months } }).then(r => r.data.data),
+  getProjections: (months?: number, historyMonths?: number) =>
+    api.get('/accounting/projections', { params: { months, history_months: historyMonths } }).then(r => r.data.data),
 };
 
 export const categoriesApi = {

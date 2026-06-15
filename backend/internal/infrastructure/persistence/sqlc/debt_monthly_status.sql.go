@@ -59,6 +59,58 @@ func (q *Queries) CreateDebtMonthlyStatus(ctx context.Context, arg CreateDebtMon
 	return i, err
 }
 
+const listUnpaidByUserIDAndDateRange = `-- name: ListUnpaidByUserIDAndDateRange :many
+SELECT dms.id, dms.debt_id, dms.month, dms.installment_num, dms.total_installments, dms.amount_due, dms.interest_amount, dms.principal_amount, dms.amount_paid, dms.paid, dms.paid_at, dms.notes, dms.created_at, dms.updated_at FROM debt_monthly_status dms
+JOIN debts d ON d.id = dms.debt_id
+WHERE d.user_id = $1
+  AND d.status = 'active'
+  AND dms.month >= $2
+  AND dms.month < $3
+  AND dms.paid = false
+ORDER BY dms.month, dms.debt_id
+`
+
+type ListUnpaidByUserIDAndDateRangeParams struct {
+	UserID  uuid.UUID   `json:"user_id"`
+	Start   pgtype.Date `json:"start"`
+	End     pgtype.Date `json:"end"`
+}
+
+func (q *Queries) ListUnpaidByUserIDAndDateRange(ctx context.Context, arg ListUnpaidByUserIDAndDateRangeParams) ([]DebtMonthlyStatus, error) {
+	rows, err := q.db.Query(ctx, listUnpaidByUserIDAndDateRange, arg.UserID, arg.Start, arg.End)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DebtMonthlyStatus{}
+	for rows.Next() {
+		var i DebtMonthlyStatus
+		if err := rows.Scan(
+			&i.ID,
+			&i.DebtID,
+			&i.Month,
+			&i.InstallmentNum,
+			&i.TotalInstallments,
+			&i.AmountDue,
+			&i.InterestAmount,
+			&i.PrincipalAmount,
+			&i.AmountPaid,
+			&i.Paid,
+			&i.PaidAt,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const deleteDebtMonthlyStatus = `-- name: DeleteDebtMonthlyStatus :exec
 DELETE FROM debt_monthly_status WHERE id = $1
 `

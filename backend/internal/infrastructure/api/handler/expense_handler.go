@@ -14,12 +14,13 @@ import (
 )
 
 type ExpenseHandler struct {
-	createUC    *appExpense.CreateUseCase
-	listUC      *appExpense.ListUseCase
-	getByIDUC   *appExpense.GetByIDUseCase
-	updateUC    *appExpense.UpdateUseCase
-	deleteUC    *appExpense.DeleteUseCase
-	togglePaidUC *appExpense.TogglePaidUseCase
+	createUC          *appExpense.CreateUseCase
+	listUC            *appExpense.ListUseCase
+	getByIDUC         *appExpense.GetByIDUseCase
+	updateUC          *appExpense.UpdateUseCase
+	deleteUC          *appExpense.DeleteUseCase
+	togglePaidUC      *appExpense.TogglePaidUseCase
+	getMonthlyStatusUC *appExpense.GetMonthlyStatusUseCase
 }
 
 func NewExpenseHandler(
@@ -29,14 +30,16 @@ func NewExpenseHandler(
 	updateUC *appExpense.UpdateUseCase,
 	deleteUC *appExpense.DeleteUseCase,
 	togglePaidUC *appExpense.TogglePaidUseCase,
+	getMonthlyStatusUC *appExpense.GetMonthlyStatusUseCase,
 ) *ExpenseHandler {
 	return &ExpenseHandler{
-		createUC:     createUC,
-		listUC:       listUC,
-		getByIDUC:    getByIDUC,
-		updateUC:     updateUC,
-		deleteUC:     deleteUC,
-		togglePaidUC: togglePaidUC,
+		createUC:           createUC,
+		listUC:             listUC,
+		getByIDUC:          getByIDUC,
+		updateUC:           updateUC,
+		deleteUC:           deleteUC,
+		togglePaidUC:       togglePaidUC,
+		getMonthlyStatusUC: getMonthlyStatusUC,
 	}
 }
 
@@ -165,6 +168,40 @@ func (h *ExpenseHandler) TogglePaid(c *gin.Context) {
 	if err != nil {
 		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
+		return
+	}
+
+	response.Success(c, http.StatusOK, result)
+}
+
+func (h *ExpenseHandler) GetMonthlyStatus(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "INVALID_ID", "invalid expense id")
+		return
+	}
+
+	year, err := strconv.Atoi(c.Param("year"))
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "INVALID_PARAM", "invalid year")
+		return
+	}
+
+	month, err := strconv.Atoi(c.Param("month"))
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "INVALID_PARAM", "invalid month")
+		return
+	}
+
+	result, err := h.getMonthlyStatusUC.Execute(c.Request.Context(), id, year, month)
+	if err != nil {
+		c.Error(err)
+		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
+		return
+	}
+
+	if result == nil {
+		response.Success(c, http.StatusOK, struct{}{})
 		return
 	}
 

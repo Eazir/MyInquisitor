@@ -23,7 +23,7 @@ export function Badge({ variant = 'info', size = 'md', removable, onRemove, chil
 
   return (
     <span className={cn(
-      'inline-flex items-center gap-1 rounded-full border font-medium',
+      'inline-flex items-center gap-1 rounded-md border font-medium',
       variants[variant], sizes[size]
     )}>
       {children}

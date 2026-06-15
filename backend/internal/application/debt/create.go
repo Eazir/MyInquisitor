@@ -48,10 +48,16 @@ func (uc *CreateUseCase) Execute(ctx context.Context, userID uuid.UUID, input dt
 		Status:             "active",
 		StartDate:          startDate,
 		EndDate:            endDate,
+		DueDay:             input.DueDay,
 	}
 
 	if err := uc.debtRepo.Create(ctx, debt); err != nil {
 		return nil, fmt.Errorf("create debt: %w", err)
+	}
+
+	startMonth := time.Date(debt.StartDate.Year(), debt.StartDate.Month(), 1, 0, 0, 0, 0, debt.StartDate.Location())
+	if err := generateInstallments(ctx, uc.monthlyRepo, debt.ID, debt.TotalAmount, debt.InterestRate, debt.TotalInstallments, 1, startMonth); err != nil {
+		return nil, err
 	}
 
 	return debtToOutput(debt), nil
@@ -78,6 +84,7 @@ func debtToOutput(d *entity.Debt) *dto.DebtOutput {
 		Status:             d.Status,
 		StartDate:          d.StartDate.Format("2006-01-02"),
 		EndDate:            endDate,
+		DueDay:             d.DueDay,
 		CreatedAt:          d.CreatedAt,
 		UpdatedAt:          d.UpdatedAt,
 	}

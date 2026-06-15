@@ -17,6 +17,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     { to: '/debts', label: t('sidebar.debts'), icon: '💳' },
     { to: '/expenses', label: t('sidebar.expenses'), icon: '📄' },
     { to: '/accounting', label: t('sidebar.accounting'), icon: '💰' },
+    { to: '/monthly-payments', label: t('sidebar.monthlyPayments'), icon: '📅' },
     { to: '/planning', label: t('sidebar.planning'), icon: '📈' },
     { to: '/admin', label: t('sidebar.admin'), icon: '⚙️', adminOnly: true },
   ];

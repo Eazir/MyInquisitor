@@ -96,3 +96,17 @@ func fromPGTimestamptz(t pgtype.Timestamptz) *time.Time {
 	}
 	return &t.Time
 }
+
+func toPGInt4(n *int32) pgtype.Int4 {
+	if n == nil {
+		return pgtype.Int4{Valid: false}
+	}
+	return pgtype.Int4{Int32: *n, Valid: true}
+}
+
+func fromPGInt4(n pgtype.Int4) *int32 {
+	if !n.Valid {
+		return nil
+	}
+	return &n.Int32
+}

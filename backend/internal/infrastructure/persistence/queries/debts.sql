@@ -1,7 +1,7 @@
 -- name: CreateDebt :one
 INSERT INTO debts (user_id, category_id, name, description, total_amount, remaining_amount,
-                   interest_rate, total_installments, current_installment, status, start_date, end_date)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                   interest_rate, total_installments, current_installment, status, start_date, end_date, due_day)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 RETURNING *;
 
 -- name: GetDebtByID :one
@@ -24,6 +24,8 @@ SET name = COALESCE($2, name),
     current_installment = COALESCE($8, current_installment),
     status = COALESCE($9, status),
     end_date = COALESCE($10, end_date),
+    start_date = COALESCE($11, start_date),
+    due_day = COALESCE($12, due_day),
     updated_at = now()
 WHERE id = $1
 RETURNING *;

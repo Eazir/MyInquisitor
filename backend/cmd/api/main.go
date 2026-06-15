@@ -40,7 +40,11 @@ func main() {
 	defer db.Close()
 	log.Println("connected to database")
 
-	if err := persistence.RunMigrations(ctx, db, "internal/infrastructure/persistence/migrations"); err != nil {
+	migrationsDir := "internal/infrastructure/persistence/migrations"
+	if env := os.Getenv("MIGRATIONS_DIR"); env != "" {
+		migrationsDir = env
+	}
+	if err := persistence.RunMigrations(ctx, db, migrationsDir); err != nil {
 		log.Fatalf("failed to run migrations: %v", err)
 	}
 	log.Println("migrations applied successfully")
@@ -70,9 +74,9 @@ func main() {
 	debtCreateUC := appDebt.NewCreateUseCase(debtRepo, debtMonthlyRepo)
 	debtListUC := appDebt.NewListUseCase(debtRepo)
 	debtGetByIDUC := appDebt.NewGetByIDUseCase(debtRepo)
-	debtUpdateUC := appDebt.NewUpdateUseCase(debtRepo)
+	debtUpdateUC := appDebt.NewUpdateUseCase(debtRepo, debtMonthlyRepo)
 	debtDeleteUC := appDebt.NewDeleteUseCase(debtRepo)
-	debtMarkPaidUC := appDebt.NewMarkPaidUseCase(debtMonthlyRepo, debtRepo)
+	debtMarkPaidUC := appDebt.NewMarkPaidUseCase(debtMonthlyRepo, debtRepo, txRepo)
 	debtMonthlyStatusUC := appDebt.NewGetMonthlyStatusUseCase(debtMonthlyRepo)
 
 	expCreateUC := appExpense.NewCreateUseCase(expenseRepo)
@@ -80,13 +84,14 @@ func main() {
 	expGetByIDUC := appExpense.NewGetByIDUseCase(expenseRepo)
 	expUpdateUC := appExpense.NewUpdateUseCase(expenseRepo)
 	expDeleteUC := appExpense.NewDeleteUseCase(expenseRepo)
-	expTogglePaidUC := appExpense.NewTogglePaidUseCase(expenseMonthlyRepo)
+	expTogglePaidUC := appExpense.NewTogglePaidUseCase(expenseMonthlyRepo, expenseRepo, txRepo)
+	expMonthlyStatusUC := appExpense.NewGetMonthlyStatusUseCase(expenseMonthlyRepo)
 
 	accRecordTxUC := appAcc.NewRecordTransactionUseCase(txRepo)
 	accListTxUC := appAcc.NewListTransactionsUseCase(txRepo)
 	accBalanceUC := appAcc.NewGetMonthlyBalanceUseCase(summaryRepo, txRepo)
 	accCashFlowUC := appAcc.NewGetCashFlowUseCase(txRepo)
-	accProjectionsUC := appAcc.NewGetProjectionsUseCase(summaryRepo, expenseRepo, debtRepo)
+	accProjectionsUC := appAcc.NewGetProjectionsUseCase(txRepo, expenseRepo, debtMonthlyRepo)
 	accCreateCatUC := appAcc.NewCreateCategoryUseCase(catRepo)
 	accListCatUC := appAcc.NewListCategoriesUseCase(catRepo)
 	accDeleteCatUC := appAcc.NewDeleteCategoryUseCase(catRepo)
@@ -99,13 +104,15 @@ func main() {
 	adminUpdateUserUC := appAdmin.NewUpdateUserUseCase(userRepo, pwdSvc)
 	adminDeactivateUserUC := appAdmin.NewDeactivateUserUseCase(userRepo)
 	adminGenerateInviteUC := appAdmin.NewGenerateInviteUseCase(inviteRepo)
+	adminListInvitesUC := appAdmin.NewListInvitesUseCase(inviteRepo)
+	adminDeleteInviteUC := appAdmin.NewDeleteInviteUseCase(inviteRepo)
 
 	authH := handler.NewAuthHandler(registerUC, loginUC, refreshUC)
 	profileH := handler.NewProfileHandler(profileUpdateUC, profileChangePasswordUC)
 	debtH := handler.NewDebtHandler(debtCreateUC, debtListUC, debtGetByIDUC, debtUpdateUC, debtDeleteUC, debtMarkPaidUC, debtMonthlyStatusUC)
-	expenseH := handler.NewExpenseHandler(expCreateUC, expListUC, expGetByIDUC, expUpdateUC, expDeleteUC, expTogglePaidUC)
+	expenseH := handler.NewExpenseHandler(expCreateUC, expListUC, expGetByIDUC, expUpdateUC, expDeleteUC, expTogglePaidUC, expMonthlyStatusUC)
 	accH := handler.NewAccountingHandler(accRecordTxUC, accListTxUC, accBalanceUC, accCashFlowUC, accProjectionsUC, accCreateCatUC, accListCatUC, accDeleteCatUC)
-	adminH := handler.NewAdminHandler(adminListUsersUC, adminCreateUserUC, adminUpdateUserUC, adminDeactivateUserUC, adminGenerateInviteUC)
+	adminH := handler.NewAdminHandler(adminListUsersUC, adminCreateUserUC, adminUpdateUserUC, adminDeactivateUserUC, adminGenerateInviteUC, adminListInvitesUC, adminDeleteInviteUC)
 
 	authMW := middleware.NewAuthMiddleware(jwtSvc)
 	adminMW := middleware.NewAdminMiddleware()

@@ -10,7 +10,7 @@ import { Select } from '../../components/ui/Select';
 import { Loading } from '../../components/ui/Loading';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from '../../components/ui/Toast';
-import { adminApi, type AdminUser, type UpdateUserInput } from '../../services/admin';
+import { adminApi, type AdminUser, type UpdateUserInput, type InviteToken } from '../../services/admin';
 
 export function AdminPage() {
   const { t } = useLanguage();
@@ -25,6 +25,9 @@ export function AdminPage() {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [editForm, setEditForm] = useState({ full_name: '', email: '', role: 'user', admin_password: '' });
   const [editError, setEditError] = useState('');
+
+  const [invites, setInvites] = useState<InviteToken[]>([]);
+  const [loadingInvites, setLoadingInvites] = useState(true);
 
   const columns: Column<AdminUser>[] = [
     { key: 'full_name', header: t('admin.name') },
@@ -50,6 +53,52 @@ export function AdminPage() {
     },
   ];
 
+  const inviteColumns: Column<InviteToken>[] = [
+    {
+      key: 'token',
+      header: t('admin.inviteToken'),
+      render: (inv) => <code className="text-xs font-mono">{inv.token.slice(0, 16)}...</code>,
+    },
+    {
+      key: 'status',
+      header: t('admin.inviteStatus'),
+      render: (inv) => {
+        if (inv.used) return <Badge variant="info">{t('admin.inviteUsed')}</Badge>;
+        if (inv.expired) return <Badge variant="danger">{t('admin.inviteExpired')}</Badge>;
+        return <Badge variant="success">{t('admin.inviteActive')}</Badge>;
+      },
+    },
+    {
+      key: 'creator_name',
+      header: t('admin.inviteCreatedBy'),
+      render: (inv) => inv.creator_name || '-',
+    },
+    {
+      key: 'expires_at',
+      header: t('admin.inviteExpires'),
+      render: (inv) => new Date(inv.expires_at).toLocaleDateString(),
+    },
+    {
+      key: 'created_at',
+      header: t('admin.inviteCreated'),
+      render: (inv) => new Date(inv.created_at).toLocaleDateString(),
+    },
+    {
+      key: 'actions',
+      header: t('admin.inviteActions'),
+      render: (inv) => (
+        <div className="flex gap-2">
+          <Button size="sm" variant="secondary" onClick={() => handleCopyInvite(inv)}>
+            {t('admin.inviteCopy')}
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDeleteInvite(inv)}>
+            {t('admin.inviteDelete')}
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   const load = async () => {
     setLoading(true);
     try {
@@ -61,7 +110,17 @@ export function AdminPage() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  const loadInvites = async () => {
+    setLoadingInvites(true);
+    try {
+      const data = await adminApi.listInvites();
+      setInvites(data || []);
+    } finally {
+      setLoadingInvites(false);
+    }
+  };
+
+  useEffect(() => { load(); loadInvites(); }, []);
 
   const handleCreate = async () => {
     await adminApi.createUser(form);
@@ -82,10 +141,28 @@ export function AdminPage() {
       const url = `${window.location.origin}/register/${result.token}`;
       await navigator.clipboard.writeText(url);
       toast(t('admin.inviteCopied'), 'success');
+      loadInvites();
     } catch {
       toast(t('admin.inviteError'), 'error');
     } finally {
       setGeneratingInvite(false);
+    }
+  };
+
+  const handleCopyInvite = async (inv: InviteToken) => {
+    const url = `${window.location.origin}${inv.url}`;
+    await navigator.clipboard.writeText(url);
+    toast(t('admin.inviteCopied'), 'success');
+  };
+
+  const handleDeleteInvite = async (inv: InviteToken) => {
+    if (!window.confirm(t('admin.inviteDeleteConfirm'))) return;
+    try {
+      await adminApi.deleteInvite(inv.id);
+      toast(t('admin.inviteTokenDeleted'), 'success');
+      loadInvites();
+    } catch {
+      toast(t('admin.inviteDeleteError'), 'error');
     }
   };
 
@@ -165,6 +242,16 @@ export function AdminPage() {
             data={users}
             variant="striped"
           />
+        )}
+      </Card>
+
+      <Card title={t('admin.pendingInvites')} className="mt-8">
+        {loadingInvites ? (
+          <Loading text={t('common.loading')} />
+        ) : invites.length === 0 ? (
+          <p className="text-sm text-[var(--color-text-secondary)] py-4 text-center">{t('admin.noInvites')}</p>
+        ) : (
+          <Table columns={inviteColumns} data={invites} variant="striped" />
         )}
       </Card>
 

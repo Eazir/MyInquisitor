@@ -116,6 +116,10 @@ func (h *DebtHandler) Update(c *gin.Context) {
 			response.Error(c, http.StatusNotFound, "NOT_FOUND", "debt not found")
 			return
 		}
+		if errors.Is(err, appDebt.ErrDebtNotEditable) {
+			response.Error(c, http.StatusBadRequest, "DEBT_NOT_EDITABLE", "debt is paused or paid")
+			return
+		}
 		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const cleanupExpiredInviteTokens = `-- name: CleanupExpiredInviteTokens :exec
@@ -47,6 +48,15 @@ func (q *Queries) CreateInviteToken(ctx context.Context, arg CreateInviteTokenPa
 	return i, err
 }
 
+const deleteInviteToken = `-- name: DeleteInviteToken :exec
+DELETE FROM invite_tokens WHERE id = $1
+`
+
+func (q *Queries) DeleteInviteToken(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteInviteToken, id)
+	return err
+}
+
 const getInviteToken = `-- name: GetInviteToken :one
 SELECT id, token, created_by, used, expires_at, created_at FROM invite_tokens WHERE token = $1
 `
@@ -63,6 +73,69 @@ func (q *Queries) GetInviteToken(ctx context.Context, token string) (InviteToken
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getInviteTokenByID = `-- name: GetInviteTokenByID :one
+SELECT id, token, created_by, used, expires_at, created_at FROM invite_tokens WHERE id = $1
+`
+
+func (q *Queries) GetInviteTokenByID(ctx context.Context, id uuid.UUID) (InviteToken, error) {
+	row := q.db.QueryRow(ctx, getInviteTokenByID, id)
+	var i InviteToken
+	err := row.Scan(
+		&i.ID,
+		&i.Token,
+		&i.CreatedBy,
+		&i.Used,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const listAllInviteTokens = `-- name: ListAllInviteTokens :many
+SELECT it.id, it.token, it.created_by, it.used, it.expires_at, it.created_at, u.full_name AS creator_name
+FROM invite_tokens it
+LEFT JOIN users u ON u.id = it.created_by
+ORDER BY it.created_at DESC
+`
+
+type ListAllInviteTokensRow struct {
+	ID          uuid.UUID   `json:"id"`
+	Token       string      `json:"token"`
+	CreatedBy   uuid.UUID   `json:"created_by"`
+	Used        bool        `json:"used"`
+	ExpiresAt   time.Time   `json:"expires_at"`
+	CreatedAt   time.Time   `json:"created_at"`
+	CreatorName pgtype.Text `json:"creator_name"`
+}
+
+func (q *Queries) ListAllInviteTokens(ctx context.Context) ([]ListAllInviteTokensRow, error) {
+	rows, err := q.db.Query(ctx, listAllInviteTokens)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAllInviteTokensRow{}
+	for rows.Next() {
+		var i ListAllInviteTokensRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Token,
+			&i.CreatedBy,
+			&i.Used,
+			&i.ExpiresAt,
+			&i.CreatedAt,
+			&i.CreatorName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listInviteTokensByCreator = `-- name: ListInviteTokensByCreator :many

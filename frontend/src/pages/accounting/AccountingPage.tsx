@@ -10,7 +10,9 @@ import { Select } from '../../components/ui/Select';
 import { Loading } from '../../components/ui/Loading';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { toast } from '../../components/ui/Toast';
 import { accountingApi, type Transaction, type MonthlyBalance } from '../../services/accounting';
+import { formatCurrency } from '../../utils/format';
 
 export function AccountingPage() {
   const { t } = useLanguage();
@@ -18,8 +20,9 @@ export function AccountingPage() {
   const [balance, setBalance] = useState<MonthlyBalance | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({
-    type: 'expense', amount: '', description: '', reference_date: '',
+    type: 'expense', amount: '', description: '', reference_date: today,
   });
 
   const now = new Date();
@@ -44,7 +47,7 @@ export function AccountingPage() {
     {
       key: 'amount',
       header: t('accounting.amount'),
-      render: (t) => <span className="font-medium">${t.amount.toFixed(2)}</span>,
+      render: (t) => <span className="font-medium">${formatCurrency(t.amount)}</span>,
     },
     { key: 'description', header: t('accounting.description'), render: (t) => t.description || '-' },
     {
@@ -59,7 +62,7 @@ export function AccountingPage() {
     try {
       const [year, month] = currentMonth.split('-').map(Number);
       const [txData, bal] = await Promise.all([
-        accountingApi.listTransactions(),
+        accountingApi.listTransactions({ year, month }),
         accountingApi.getMonthlyBalance(year, month),
       ]);
       setTransactions(txData.data || []);
@@ -72,15 +75,29 @@ export function AccountingPage() {
   useEffect(() => { load(); }, []);
 
   const handleCreate = async () => {
-    await accountingApi.recordTransaction({
-      type: form.type,
-      amount: parseFloat(form.amount),
-      description: form.description || undefined,
-      reference_date: form.reference_date,
-    });
-    setShowModal(false);
-    setForm({ type: 'expense', amount: '', description: '', reference_date: '' });
-    load();
+    const amount = parseFloat(form.amount);
+    if (!amount || amount <= 0) {
+      toast(t('accounting.invalidAmount'), 'error');
+      return;
+    }
+    if (!form.reference_date) {
+      toast(t('accounting.requiredDate'), 'error');
+      return;
+    }
+    try {
+      await accountingApi.recordTransaction({
+        type: form.type,
+        amount,
+        description: form.description || undefined,
+        reference_date: form.reference_date,
+      });
+      setShowModal(false);
+      setForm({ type: 'expense', amount: '', description: '', reference_date: today });
+      toast(t('accounting.transactionCreated'), 'success');
+      load();
+    } catch {
+      toast(t('accounting.transactionError'), 'error');
+    }
   };
 
   return (
@@ -95,17 +112,17 @@ export function AccountingPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mb-8">
         <Card variant="stats" title={t('accounting.income')} subtitle={currentMonth}>
           <p className="text-2xl font-bold text-[var(--color-success)]">
-            ${balance?.total_income.toFixed(2) || '0.00'}
+            ${formatCurrency(balance?.total_income ?? 0)}
           </p>
         </Card>
         <Card variant="stats" title={t('accounting.expenses')} subtitle={currentMonth}>
           <p className="text-2xl font-bold text-[var(--color-danger)]">
-            ${balance?.total_expenses.toFixed(2) || '0.00'}
+            ${formatCurrency(balance?.total_expenses ?? 0)}
           </p>
         </Card>
         <Card variant="stats" title={t('accounting.netBalance')} subtitle={currentMonth}>
           <p className={`text-2xl font-bold ${(balance?.net_balance || 0) >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
-            ${balance?.net_balance.toFixed(2) || '0.00'}
+            ${formatCurrency(balance?.net_balance ?? 0)}
           </p>
         </Card>
       </div>

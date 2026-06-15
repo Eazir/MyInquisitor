@@ -33,6 +33,7 @@ services:
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-720h}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
+      MIGRATIONS_DIR: /migrations
     ports:
       - "8080:8080"
     depends_on:
@@ -43,8 +44,8 @@ services:
 
   frontend:
     build:
-      context: ../frontend
-      dockerfile: ../docker/frontend/Dockerfile
+      context: ..
+      dockerfile: docker/frontend/Dockerfile
     container_name: myinquisitor-web
     ports:
       - "3000:80"

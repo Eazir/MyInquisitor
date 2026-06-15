@@ -34,17 +34,22 @@ func (uc *CreateUseCase) Execute(ctx context.Context, userID uuid.UUID, input dt
 		endDate = &t
 	}
 
+	if input.Frequency == "once" && endDate == nil {
+		endDate = &startDate
+	}
+
 	expense := &entity.RecurringExpense{
-		UserID:      userID,
-		CategoryID:  input.CategoryID,
-		Name:        input.Name,
-		Description: input.Description,
-		Amount:      input.Amount,
-		Frequency:   input.Frequency,
-		DueDay:      input.DueDay,
-		Status:      "active",
-		StartDate:   startDate,
-		EndDate:     endDate,
+		UserID:       userID,
+		CategoryID:   input.CategoryID,
+		Name:         input.Name,
+		Description:  input.Description,
+		Amount:       input.Amount,
+		Frequency:    input.Frequency,
+		DueDay:       input.DueDay,
+		BillingMonth: input.BillingMonth,
+		Status:       "active",
+		StartDate:    startDate,
+		EndDate:      endDate,
 	}
 
 	if err := uc.expenseRepo.Create(ctx, expense); err != nil {
@@ -62,19 +67,20 @@ func expenseToOutput(e *entity.RecurringExpense) *dto.ExpenseOutput {
 	}
 
 	return &dto.ExpenseOutput{
-		ID:          e.ID,
-		UserID:      e.UserID,
-		CategoryID:  e.CategoryID,
-		Name:        e.Name,
-		Description: e.Description,
-		Amount:      e.Amount,
-		Frequency:   e.Frequency,
-		DueDay:      e.DueDay,
-		Status:      e.Status,
-		StartDate:   e.StartDate.Format("2006-01-02"),
-		EndDate:     endDate,
-		CreatedAt:   e.CreatedAt,
-		UpdatedAt:   e.UpdatedAt,
+		ID:           e.ID,
+		UserID:       e.UserID,
+		CategoryID:   e.CategoryID,
+		Name:         e.Name,
+		Description:  e.Description,
+		Amount:       e.Amount,
+		Frequency:    e.Frequency,
+		DueDay:       e.DueDay,
+		BillingMonth: e.BillingMonth,
+		Status:       e.Status,
+		StartDate:    e.StartDate.Format("2006-01-02"),
+		EndDate:      endDate,
+		CreatedAt:    e.CreatedAt,
+		UpdatedAt:    e.UpdatedAt,
 	}
 }
 

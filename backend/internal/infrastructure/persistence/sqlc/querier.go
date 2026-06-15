@@ -26,6 +26,7 @@ type Querier interface {
 	DeleteDebt(ctx context.Context, id uuid.UUID) error
 	DeleteDebtMonthlyStatus(ctx context.Context, id uuid.UUID) error
 	DeleteExpenseMonthlyStatus(ctx context.Context, id uuid.UUID) error
+	DeleteInviteToken(ctx context.Context, id uuid.UUID) error
 	DeleteMonthlySummary(ctx context.Context, id uuid.UUID) error
 	DeleteRecurringExpense(ctx context.Context, id uuid.UUID) error
 	DeleteTransaction(ctx context.Context, arg DeleteTransactionParams) error
@@ -35,6 +36,7 @@ type Querier interface {
 	GetDebtMonthlyStatus(ctx context.Context, arg GetDebtMonthlyStatusParams) (DebtMonthlyStatus, error)
 	GetExpenseMonthlyStatus(ctx context.Context, arg GetExpenseMonthlyStatusParams) (ExpenseMonthlyStatus, error)
 	GetInviteToken(ctx context.Context, token string) (InviteToken, error)
+	GetInviteTokenByID(ctx context.Context, id uuid.UUID) (InviteToken, error)
 	GetMonthlySummary(ctx context.Context, arg GetMonthlySummaryParams) (MonthlySummary, error)
 	GetRecurringExpenseByID(ctx context.Context, id uuid.UUID) (RecurringExpense, error)
 	GetTransactionByID(ctx context.Context, id uuid.UUID) (Transaction, error)
@@ -42,10 +44,12 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	ListActiveDebtsByUserID(ctx context.Context, userID uuid.UUID) ([]Debt, error)
 	ListActiveRecurringExpensesByUserID(ctx context.Context, userID uuid.UUID) ([]RecurringExpense, error)
+	ListAllInviteTokens(ctx context.Context) ([]ListAllInviteTokensRow, error)
 	ListCategoriesByType(ctx context.Context, arg ListCategoriesByTypeParams) ([]Category, error)
 	ListCategoriesByUserID(ctx context.Context, userID uuid.UUID) ([]Category, error)
 	ListDebtMonthlyStatusByDebtID(ctx context.Context, debtID uuid.UUID) ([]DebtMonthlyStatus, error)
 	ListDebtMonthlyStatusByMonth(ctx context.Context, month pgtype.Date) ([]DebtMonthlyStatus, error)
+	ListUnpaidByUserIDAndDateRange(ctx context.Context, arg ListUnpaidByUserIDAndDateRangeParams) ([]DebtMonthlyStatus, error)
 	ListDebtsByUserID(ctx context.Context, userID uuid.UUID) ([]Debt, error)
 	ListExpenseMonthlyStatusByExpenseID(ctx context.Context, expenseID uuid.UUID) ([]ExpenseMonthlyStatus, error)
 	ListExpenseMonthlyStatusByMonth(ctx context.Context, month pgtype.Date) ([]ExpenseMonthlyStatus, error)

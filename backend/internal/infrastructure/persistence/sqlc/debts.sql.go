@@ -14,9 +14,9 @@ import (
 
 const createDebt = `-- name: CreateDebt :one
 INSERT INTO debts (user_id, category_id, name, description, total_amount, remaining_amount,
-                   interest_rate, total_installments, current_installment, status, start_date, end_date)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-RETURNING id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, created_at, updated_at
+                   interest_rate, total_installments, current_installment, status, start_date, end_date, due_day)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+RETURNING id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, due_day, created_at, updated_at
 `
 
 type CreateDebtParams struct {
@@ -32,6 +32,7 @@ type CreateDebtParams struct {
 	Status             string         `json:"status"`
 	StartDate          pgtype.Date    `json:"start_date"`
 	EndDate            pgtype.Date    `json:"end_date"`
+	DueDay             pgtype.Int4    `json:"due_day"`
 }
 
 func (q *Queries) CreateDebt(ctx context.Context, arg CreateDebtParams) (Debt, error) {
@@ -48,6 +49,7 @@ func (q *Queries) CreateDebt(ctx context.Context, arg CreateDebtParams) (Debt, e
 		arg.Status,
 		arg.StartDate,
 		arg.EndDate,
+		arg.DueDay,
 	)
 	var i Debt
 	err := row.Scan(
@@ -64,6 +66,7 @@ func (q *Queries) CreateDebt(ctx context.Context, arg CreateDebtParams) (Debt, e
 		&i.Status,
 		&i.StartDate,
 		&i.EndDate,
+		&i.DueDay,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -80,7 +83,7 @@ func (q *Queries) DeleteDebt(ctx context.Context, id uuid.UUID) error {
 }
 
 const getDebtByID = `-- name: GetDebtByID :one
-SELECT id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, created_at, updated_at FROM debts WHERE id = $1
+SELECT id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, due_day, created_at, updated_at FROM debts WHERE id = $1
 `
 
 func (q *Queries) GetDebtByID(ctx context.Context, id uuid.UUID) (Debt, error) {
@@ -100,6 +103,7 @@ func (q *Queries) GetDebtByID(ctx context.Context, id uuid.UUID) (Debt, error) {
 		&i.Status,
 		&i.StartDate,
 		&i.EndDate,
+		&i.DueDay,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -107,7 +111,7 @@ func (q *Queries) GetDebtByID(ctx context.Context, id uuid.UUID) (Debt, error) {
 }
 
 const listActiveDebtsByUserID = `-- name: ListActiveDebtsByUserID :many
-SELECT id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, created_at, updated_at FROM debts WHERE user_id = $1 AND status = 'active' ORDER BY created_at DESC
+SELECT id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, due_day, created_at, updated_at FROM debts WHERE user_id = $1 AND status = 'active' ORDER BY created_at DESC
 `
 
 func (q *Queries) ListActiveDebtsByUserID(ctx context.Context, userID uuid.UUID) ([]Debt, error) {
@@ -133,6 +137,7 @@ func (q *Queries) ListActiveDebtsByUserID(ctx context.Context, userID uuid.UUID)
 			&i.Status,
 			&i.StartDate,
 			&i.EndDate,
+			&i.DueDay,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -147,7 +152,7 @@ func (q *Queries) ListActiveDebtsByUserID(ctx context.Context, userID uuid.UUID)
 }
 
 const listDebtsByUserID = `-- name: ListDebtsByUserID :many
-SELECT id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, created_at, updated_at FROM debts WHERE user_id = $1 ORDER BY created_at DESC
+SELECT id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, due_day, created_at, updated_at FROM debts WHERE user_id = $1 ORDER BY created_at DESC
 `
 
 func (q *Queries) ListDebtsByUserID(ctx context.Context, userID uuid.UUID) ([]Debt, error) {
@@ -173,6 +178,7 @@ func (q *Queries) ListDebtsByUserID(ctx context.Context, userID uuid.UUID) ([]De
 			&i.Status,
 			&i.StartDate,
 			&i.EndDate,
+			&i.DueDay,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -197,9 +203,11 @@ SET name = COALESCE($2, name),
     current_installment = COALESCE($8, current_installment),
     status = COALESCE($9, status),
     end_date = COALESCE($10, end_date),
+    start_date = COALESCE($11, start_date),
+    due_day = COALESCE($12, due_day),
     updated_at = now()
 WHERE id = $1
-RETURNING id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, created_at, updated_at
+RETURNING id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, due_day, created_at, updated_at
 `
 
 type UpdateDebtParams struct {
@@ -213,6 +221,8 @@ type UpdateDebtParams struct {
 	CurrentInstallment int32          `json:"current_installment"`
 	Status             string         `json:"status"`
 	EndDate            pgtype.Date    `json:"end_date"`
+	StartDate          pgtype.Date    `json:"start_date"`
+	DueDay             pgtype.Int4    `json:"due_day"`
 }
 
 func (q *Queries) UpdateDebt(ctx context.Context, arg UpdateDebtParams) (Debt, error) {
@@ -227,6 +237,8 @@ func (q *Queries) UpdateDebt(ctx context.Context, arg UpdateDebtParams) (Debt, e
 		arg.CurrentInstallment,
 		arg.Status,
 		arg.EndDate,
+		arg.StartDate,
+		arg.DueDay,
 	)
 	var i Debt
 	err := row.Scan(
@@ -243,6 +255,7 @@ func (q *Queries) UpdateDebt(ctx context.Context, arg UpdateDebtParams) (Debt, e
 		&i.Status,
 		&i.StartDate,
 		&i.EndDate,
+		&i.DueDay,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -250,7 +263,7 @@ func (q *Queries) UpdateDebt(ctx context.Context, arg UpdateDebtParams) (Debt, e
 }
 
 const updateDebtCurrentInstallment = `-- name: UpdateDebtCurrentInstallment :one
-UPDATE debts SET current_installment = $2, updated_at = now() WHERE id = $1 RETURNING id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, created_at, updated_at
+UPDATE debts SET current_installment = $2, updated_at = now() WHERE id = $1 RETURNING id, user_id, category_id, name, description, total_amount, remaining_amount, interest_rate, total_installments, current_installment, status, start_date, end_date, due_day, created_at, updated_at
 `
 
 type UpdateDebtCurrentInstallmentParams struct {
@@ -275,6 +288,7 @@ func (q *Queries) UpdateDebtCurrentInstallment(ctx context.Context, arg UpdateDe
 		&i.Status,
 		&i.StartDate,
 		&i.EndDate,
+		&i.DueDay,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

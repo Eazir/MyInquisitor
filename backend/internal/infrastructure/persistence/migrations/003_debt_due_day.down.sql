@@ -1,0 +1,1 @@
+ALTER TABLE debts DROP COLUMN due_day;

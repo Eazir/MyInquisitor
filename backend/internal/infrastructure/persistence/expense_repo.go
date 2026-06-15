@@ -26,17 +26,22 @@ func toSQLCRecurringExpenseParams(e *entity.RecurringExpense) sqlc.CreateRecurri
 	if e.DueDay != nil {
 		dueDay = pgtype.Int4{Int32: *e.DueDay, Valid: true}
 	}
+	billingMonth := pgtype.Int4{Valid: false}
+	if e.BillingMonth != nil {
+		billingMonth = pgtype.Int4{Int32: *e.BillingMonth, Valid: true}
+	}
 	return sqlc.CreateRecurringExpenseParams{
-		UserID:      e.UserID,
-		CategoryID:  toPGUUID(e.CategoryID),
-		Name:        e.Name,
-		Description: toPGText(e.Description),
-		Amount:      toPGNumeric(e.Amount),
-		Frequency:   e.Frequency,
-		DueDay:      dueDay,
-		Status:      e.Status,
-		StartDate:   toPGDate(e.StartDate),
-		EndDate:     toPGDatePtr(e.EndDate),
+		UserID:       e.UserID,
+		CategoryID:   toPGUUID(e.CategoryID),
+		Name:         e.Name,
+		Description:  toPGText(e.Description),
+		Amount:       toPGNumeric(e.Amount),
+		Frequency:    e.Frequency,
+		DueDay:       dueDay,
+		BillingMonth: billingMonth,
+		Status:       e.Status,
+		StartDate:    toPGDate(e.StartDate),
+		EndDate:      toPGDatePtr(e.EndDate),
 	}
 }
 
@@ -45,20 +50,25 @@ func fromSQLCRecurringExpense(s sqlc.RecurringExpense) entity.RecurringExpense {
 	if s.DueDay.Valid {
 		dueDay = &s.DueDay.Int32
 	}
+	var billingMonth *int32
+	if s.BillingMonth.Valid {
+		billingMonth = &s.BillingMonth.Int32
+	}
 	return entity.RecurringExpense{
-		ID:          s.ID,
-		UserID:      s.UserID,
-		CategoryID:  fromPGUUID(s.CategoryID),
-		Name:        s.Name,
-		Description: fromPGText(s.Description),
-		Amount:      fromPGNumeric(s.Amount),
-		Frequency:   s.Frequency,
-		DueDay:      dueDay,
-		Status:      s.Status,
-		StartDate:   fromPGDate(s.StartDate),
-		EndDate:     fromPGDatePtr(s.EndDate),
-		CreatedAt:   s.CreatedAt,
-		UpdatedAt:   s.UpdatedAt,
+		ID:           s.ID,
+		UserID:       s.UserID,
+		CategoryID:   fromPGUUID(s.CategoryID),
+		Name:         s.Name,
+		Description:  fromPGText(s.Description),
+		Amount:       fromPGNumeric(s.Amount),
+		Frequency:    s.Frequency,
+		DueDay:       dueDay,
+		BillingMonth: billingMonth,
+		Status:       s.Status,
+		StartDate:    fromPGDate(s.StartDate),
+		EndDate:      fromPGDatePtr(s.EndDate),
+		CreatedAt:    s.CreatedAt,
+		UpdatedAt:    s.UpdatedAt,
 	}
 }
 
@@ -112,15 +122,20 @@ func (r *RecurringExpenseRepository) Update(ctx context.Context, e *entity.Recur
 	if e.DueDay != nil {
 		dueDay = pgtype.Int4{Int32: *e.DueDay, Valid: true}
 	}
+	billingMonth := pgtype.Int4{Valid: false}
+	if e.BillingMonth != nil {
+		billingMonth = pgtype.Int4{Int32: *e.BillingMonth, Valid: true}
+	}
 	updated, err := r.q.UpdateRecurringExpense(ctx, sqlc.UpdateRecurringExpenseParams{
-		ID:          e.ID,
-		Name:        e.Name,
-		Description: toPGText(e.Description),
-		Amount:      toPGNumeric(e.Amount),
-		Frequency:   e.Frequency,
-		DueDay:      dueDay,
-		Status:      e.Status,
-		EndDate:     toPGDatePtr(e.EndDate),
+		ID:           e.ID,
+		Name:         e.Name,
+		Description:  toPGText(e.Description),
+		Amount:       toPGNumeric(e.Amount),
+		Frequency:    e.Frequency,
+		DueDay:       dueDay,
+		BillingMonth: billingMonth,
+		Status:       e.Status,
+		EndDate:      toPGDatePtr(e.EndDate),
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -231,6 +246,7 @@ func (r *ExpenseMonthlyStatusRepository) Upsert(ctx context.Context, s *entity.E
 	updated, err := r.q.UpsertExpenseMonthlyStatus(ctx, sqlc.UpsertExpenseMonthlyStatusParams{
 		ExpenseID:  s.ExpenseID,
 		Month:      toPGDate(s.Month),
+		Paid:       s.Paid,
 		AmountPaid: amountPaid,
 		Notes:      toPGText(s.Notes),
 	})

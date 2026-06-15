@@ -24,6 +24,18 @@ export interface UpdateUserInput {
   admin_password: string;
 }
 
+export interface InviteToken {
+  id: string;
+  token: string;
+  created_by: string;
+  creator_name: string | null;
+  expires_at: string;
+  url: string;
+  used: boolean;
+  created_at: string;
+  expired: boolean;
+}
+
 export const adminApi = {
   listUsers: (page = 1, limit = 20) =>
     api.get('/admin/users', { params: { page, limit } }).then(r => r.data),
@@ -35,4 +47,8 @@ export const adminApi = {
     api.put(`/admin/users/${id}/activate/${active}`).then(r => r.data.data),
   generateInvite: () =>
     api.post('/admin/invite').then(r => r.data.data),
+  listInvites: () =>
+    api.get('/admin/invites').then(r => r.data.data),
+  deleteInvite: (id: string) =>
+    api.delete(`/admin/invites/${id}`),
 };

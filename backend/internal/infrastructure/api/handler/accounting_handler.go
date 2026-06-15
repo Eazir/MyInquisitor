@@ -2,9 +2,9 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -69,8 +69,9 @@ func (h *AccountingHandler) RecordTransaction(c *gin.Context) {
 func (h *AccountingHandler) ListTransactions(c *gin.Context) {
 	userID := c.MustGet("user_id").(uuid.UUID)
 
-	year, _ := strconv.Atoi(c.DefaultQuery("year", "2026"))
-	month, _ := strconv.Atoi(c.DefaultQuery("month", "1"))
+	now := time.Now()
+	year, _ := strconv.Atoi(c.DefaultQuery("year", strconv.Itoa(now.Year())))
+	month, _ := strconv.Atoi(c.DefaultQuery("month", strconv.Itoa(int(now.Month()))))
 
 	result, err := h.listTxUC.Execute(c.Request.Context(), userID, year, month)
 	if err != nil {
@@ -90,12 +91,6 @@ func (h *AccountingHandler) MonthlyBalance(c *gin.Context) {
 
 	result, err := h.balanceUC.Execute(c.Request.Context(), userID, year, month)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			response.Success(c, http.StatusOK, dto.MonthlyBalanceOutput{
-				Month: fmt.Sprintf("%04d-%02d-01", year, month),
-			})
-			return
-		}
 		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
 		return
@@ -128,7 +123,12 @@ func (h *AccountingHandler) Projections(c *gin.Context) {
 		months = 6
 	}
 
-	result, err := h.projectionsUC.Execute(c.Request.Context(), userID, months)
+	historyMonths, _ := strconv.Atoi(c.DefaultQuery("history_months", "12"))
+	if historyMonths < 1 || historyMonths > 36 {
+		historyMonths = 12
+	}
+
+	result, err := h.projectionsUC.Execute(c.Request.Context(), userID, months, historyMonths)
 	if err != nil {
 		c.Error(err)
 		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")

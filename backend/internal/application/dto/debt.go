@@ -15,6 +15,7 @@ type CreateDebtInput struct {
 	TotalInstallments int32      `json:"total_installments" validate:"required,gt=0"`
 	StartDate         string     `json:"start_date" validate:"required"`
 	EndDate           *string    `json:"end_date,omitempty"`
+	DueDay            *int32     `json:"due_day,omitempty"`
 }
 
 type UpdateDebtInput struct {
@@ -25,6 +26,8 @@ type UpdateDebtInput struct {
 	InterestRate      *float64  `json:"interest_rate,omitempty"`
 	TotalInstallments *int32    `json:"total_installments,omitempty"`
 	Status            *string   `json:"status,omitempty"`
+	StartDate         *string   `json:"start_date,omitempty"`
+	DueDay            *int32    `json:"due_day,omitempty"`
 }
 
 type DebtOutput struct {
@@ -41,6 +44,7 @@ type DebtOutput struct {
 	Status             string     `json:"status"`
 	StartDate          string     `json:"start_date"`
 	EndDate            *string    `json:"end_date"`
+	DueDay             *int32     `json:"due_day"`
 	CreatedAt          time.Time  `json:"created_at"`
 	UpdatedAt          time.Time  `json:"updated_at"`
 }

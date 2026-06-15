@@ -35,6 +35,7 @@ type Debt struct {
 	Status             string         `json:"status"`
 	StartDate          pgtype.Date    `json:"start_date"`
 	EndDate            pgtype.Date    `json:"end_date"`
+	DueDay             pgtype.Int4    `json:"due_day"`
 	CreatedAt          time.Time      `json:"created_at"`
 	UpdatedAt          time.Time      `json:"updated_at"`
 }
@@ -94,19 +95,20 @@ type MonthlySummary struct {
 }
 
 type RecurringExpense struct {
-	ID          uuid.UUID      `json:"id"`
-	UserID      uuid.UUID      `json:"user_id"`
-	CategoryID  pgtype.UUID    `json:"category_id"`
-	Name        string         `json:"name"`
-	Description pgtype.Text    `json:"description"`
-	Amount      pgtype.Numeric `json:"amount"`
-	Frequency   string         `json:"frequency"`
-	DueDay      pgtype.Int4    `json:"due_day"`
-	Status      string         `json:"status"`
-	StartDate   pgtype.Date    `json:"start_date"`
-	EndDate     pgtype.Date    `json:"end_date"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	ID           uuid.UUID      `json:"id"`
+	UserID       uuid.UUID      `json:"user_id"`
+	CategoryID   pgtype.UUID    `json:"category_id"`
+	Name         string         `json:"name"`
+	Description  pgtype.Text    `json:"description"`
+	Amount       pgtype.Numeric `json:"amount"`
+	Frequency    string         `json:"frequency"`
+	DueDay       pgtype.Int4    `json:"due_day"`
+	BillingMonth pgtype.Int4    `json:"billing_month"`
+	Status       string         `json:"status"`
+	StartDate    pgtype.Date    `json:"start_date"`
+	EndDate      pgtype.Date    `json:"end_date"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
 }
 
 type Transaction struct {

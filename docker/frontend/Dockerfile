@@ -2,17 +2,17 @@ ARG NODE_VERSION=22
 
 FROM node:${NODE_VERSION}-alpine AS builder
 
-WORKDIR /src
+WORKDIR /src/frontend
 
-COPY package.json package-lock.json ./
+COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
-COPY . .
+COPY frontend/ .
 RUN npm run build
 
 FROM nginx:1.27-alpine
 
-COPY --from=builder /src/dist /usr/share/nginx/html
+COPY --from=builder /src/frontend/dist /usr/share/nginx/html
 COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80

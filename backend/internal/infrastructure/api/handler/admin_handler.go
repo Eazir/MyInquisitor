@@ -19,6 +19,8 @@ type AdminHandler struct {
 	updateUserUC      *appAdmin.UpdateUserUseCase
 	deactivateUserUC  *appAdmin.DeactivateUserUseCase
 	generateInviteUC  *appAdmin.GenerateInviteUseCase
+	listInvitesUC     *appAdmin.ListInvitesUseCase
+	deleteInviteUC    *appAdmin.DeleteInviteUseCase
 }
 
 func NewAdminHandler(
@@ -27,6 +29,8 @@ func NewAdminHandler(
 	updateUserUC *appAdmin.UpdateUserUseCase,
 	deactivateUserUC *appAdmin.DeactivateUserUseCase,
 	generateInviteUC *appAdmin.GenerateInviteUseCase,
+	listInvitesUC *appAdmin.ListInvitesUseCase,
+	deleteInviteUC *appAdmin.DeleteInviteUseCase,
 ) *AdminHandler {
 	return &AdminHandler{
 		listUsersUC:       listUsersUC,
@@ -34,6 +38,8 @@ func NewAdminHandler(
 		updateUserUC:      updateUserUC,
 		deactivateUserUC:  deactivateUserUC,
 		generateInviteUC:  generateInviteUC,
+		listInvitesUC:     listInvitesUC,
+		deleteInviteUC:    deleteInviteUC,
 	}
 }
 
@@ -139,4 +145,32 @@ func (h *AdminHandler) GenerateInvite(c *gin.Context) {
 		"token": token,
 		"url":   "/register/" + token,
 	})
+}
+
+func (h *AdminHandler) ListInviteTokens(c *gin.Context) {
+	invites, err := h.listInvitesUC.Execute(c.Request.Context())
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
+		return
+	}
+	response.Success(c, http.StatusOK, invites)
+}
+
+func (h *AdminHandler) DeleteInviteToken(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "INVALID_ID", "invalid invite id")
+		return
+	}
+
+	if err := h.deleteInviteUC.Execute(c.Request.Context(), id); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			response.Error(c, http.StatusNotFound, "NOT_FOUND", "invite token not found")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
+		return
+	}
+
+	response.Success(c, http.StatusOK, gin.H{"message": "invite token deleted"})
 }

@@ -14,22 +14,23 @@ import (
 
 const createRecurringExpense = `-- name: CreateRecurringExpense :one
 INSERT INTO recurring_expenses (user_id, category_id, name, description, amount,
-                                frequency, due_day, status, start_date, end_date)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, user_id, category_id, name, description, amount, frequency, due_day, status, start_date, end_date, created_at, updated_at
+                                frequency, due_day, billing_month, status, start_date, end_date)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+RETURNING id, user_id, category_id, name, description, amount, frequency, due_day, billing_month, status, start_date, end_date, created_at, updated_at
 `
 
 type CreateRecurringExpenseParams struct {
-	UserID      uuid.UUID      `json:"user_id"`
-	CategoryID  pgtype.UUID    `json:"category_id"`
-	Name        string         `json:"name"`
-	Description pgtype.Text    `json:"description"`
-	Amount      pgtype.Numeric `json:"amount"`
-	Frequency   string         `json:"frequency"`
-	DueDay      pgtype.Int4    `json:"due_day"`
-	Status      string         `json:"status"`
-	StartDate   pgtype.Date    `json:"start_date"`
-	EndDate     pgtype.Date    `json:"end_date"`
+	UserID       uuid.UUID      `json:"user_id"`
+	CategoryID   pgtype.UUID    `json:"category_id"`
+	Name         string         `json:"name"`
+	Description  pgtype.Text    `json:"description"`
+	Amount       pgtype.Numeric `json:"amount"`
+	Frequency    string         `json:"frequency"`
+	DueDay       pgtype.Int4    `json:"due_day"`
+	BillingMonth pgtype.Int4    `json:"billing_month"`
+	Status       string         `json:"status"`
+	StartDate    pgtype.Date    `json:"start_date"`
+	EndDate      pgtype.Date    `json:"end_date"`
 }
 
 func (q *Queries) CreateRecurringExpense(ctx context.Context, arg CreateRecurringExpenseParams) (RecurringExpense, error) {
@@ -41,6 +42,7 @@ func (q *Queries) CreateRecurringExpense(ctx context.Context, arg CreateRecurrin
 		arg.Amount,
 		arg.Frequency,
 		arg.DueDay,
+		arg.BillingMonth,
 		arg.Status,
 		arg.StartDate,
 		arg.EndDate,
@@ -55,6 +57,7 @@ func (q *Queries) CreateRecurringExpense(ctx context.Context, arg CreateRecurrin
 		&i.Amount,
 		&i.Frequency,
 		&i.DueDay,
+		&i.BillingMonth,
 		&i.Status,
 		&i.StartDate,
 		&i.EndDate,
@@ -74,7 +77,7 @@ func (q *Queries) DeleteRecurringExpense(ctx context.Context, id uuid.UUID) erro
 }
 
 const getRecurringExpenseByID = `-- name: GetRecurringExpenseByID :one
-SELECT id, user_id, category_id, name, description, amount, frequency, due_day, status, start_date, end_date, created_at, updated_at FROM recurring_expenses WHERE id = $1
+SELECT id, user_id, category_id, name, description, amount, frequency, due_day, billing_month, status, start_date, end_date, created_at, updated_at FROM recurring_expenses WHERE id = $1
 `
 
 func (q *Queries) GetRecurringExpenseByID(ctx context.Context, id uuid.UUID) (RecurringExpense, error) {
@@ -89,6 +92,7 @@ func (q *Queries) GetRecurringExpenseByID(ctx context.Context, id uuid.UUID) (Re
 		&i.Amount,
 		&i.Frequency,
 		&i.DueDay,
+		&i.BillingMonth,
 		&i.Status,
 		&i.StartDate,
 		&i.EndDate,
@@ -99,7 +103,7 @@ func (q *Queries) GetRecurringExpenseByID(ctx context.Context, id uuid.UUID) (Re
 }
 
 const listActiveRecurringExpensesByUserID = `-- name: ListActiveRecurringExpensesByUserID :many
-SELECT id, user_id, category_id, name, description, amount, frequency, due_day, status, start_date, end_date, created_at, updated_at FROM recurring_expenses WHERE user_id = $1 AND status = 'active' ORDER BY name
+SELECT id, user_id, category_id, name, description, amount, frequency, due_day, billing_month, status, start_date, end_date, created_at, updated_at FROM recurring_expenses WHERE user_id = $1 AND status = 'active' ORDER BY name
 `
 
 func (q *Queries) ListActiveRecurringExpensesByUserID(ctx context.Context, userID uuid.UUID) ([]RecurringExpense, error) {
@@ -120,6 +124,7 @@ func (q *Queries) ListActiveRecurringExpensesByUserID(ctx context.Context, userI
 			&i.Amount,
 			&i.Frequency,
 			&i.DueDay,
+			&i.BillingMonth,
 			&i.Status,
 			&i.StartDate,
 			&i.EndDate,
@@ -137,7 +142,7 @@ func (q *Queries) ListActiveRecurringExpensesByUserID(ctx context.Context, userI
 }
 
 const listRecurringExpensesByUserID = `-- name: ListRecurringExpensesByUserID :many
-SELECT id, user_id, category_id, name, description, amount, frequency, due_day, status, start_date, end_date, created_at, updated_at FROM recurring_expenses WHERE user_id = $1 ORDER BY name
+SELECT id, user_id, category_id, name, description, amount, frequency, due_day, billing_month, status, start_date, end_date, created_at, updated_at FROM recurring_expenses WHERE user_id = $1 ORDER BY name
 `
 
 func (q *Queries) ListRecurringExpensesByUserID(ctx context.Context, userID uuid.UUID) ([]RecurringExpense, error) {
@@ -158,6 +163,7 @@ func (q *Queries) ListRecurringExpensesByUserID(ctx context.Context, userID uuid
 			&i.Amount,
 			&i.Frequency,
 			&i.DueDay,
+			&i.BillingMonth,
 			&i.Status,
 			&i.StartDate,
 			&i.EndDate,
@@ -181,22 +187,24 @@ SET name = COALESCE($2, name),
     amount = COALESCE($4, amount),
     frequency = COALESCE($5, frequency),
     due_day = COALESCE($6, due_day),
-    status = COALESCE($7, status),
-    end_date = COALESCE($8, end_date),
+    billing_month = COALESCE($7, billing_month),
+    status = COALESCE($8, status),
+    end_date = COALESCE($9, end_date),
     updated_at = now()
 WHERE id = $1
-RETURNING id, user_id, category_id, name, description, amount, frequency, due_day, status, start_date, end_date, created_at, updated_at
+RETURNING id, user_id, category_id, name, description, amount, frequency, due_day, billing_month, status, start_date, end_date, created_at, updated_at
 `
 
 type UpdateRecurringExpenseParams struct {
-	ID          uuid.UUID      `json:"id"`
-	Name        string         `json:"name"`
-	Description pgtype.Text    `json:"description"`
-	Amount      pgtype.Numeric `json:"amount"`
-	Frequency   string         `json:"frequency"`
-	DueDay      pgtype.Int4    `json:"due_day"`
-	Status      string         `json:"status"`
-	EndDate     pgtype.Date    `json:"end_date"`
+	ID           uuid.UUID      `json:"id"`
+	Name         string         `json:"name"`
+	Description  pgtype.Text    `json:"description"`
+	Amount       pgtype.Numeric `json:"amount"`
+	Frequency    string         `json:"frequency"`
+	DueDay       pgtype.Int4    `json:"due_day"`
+	BillingMonth pgtype.Int4    `json:"billing_month"`
+	Status       string         `json:"status"`
+	EndDate      pgtype.Date    `json:"end_date"`
 }
 
 func (q *Queries) UpdateRecurringExpense(ctx context.Context, arg UpdateRecurringExpenseParams) (RecurringExpense, error) {
@@ -207,6 +215,7 @@ func (q *Queries) UpdateRecurringExpense(ctx context.Context, arg UpdateRecurrin
 		arg.Amount,
 		arg.Frequency,
 		arg.DueDay,
+		arg.BillingMonth,
 		arg.Status,
 		arg.EndDate,
 	)
@@ -220,6 +229,7 @@ func (q *Queries) UpdateRecurringExpense(ctx context.Context, arg UpdateRecurrin
 		&i.Amount,
 		&i.Frequency,
 		&i.DueDay,
+		&i.BillingMonth,
 		&i.Status,
 		&i.StartDate,
 		&i.EndDate,

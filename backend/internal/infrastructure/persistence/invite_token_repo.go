@@ -56,8 +56,58 @@ func (r *InviteTokenRepository) GetByToken(ctx context.Context, token string) (*
 	return &t, nil
 }
 
+func (r *InviteTokenRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.InviteToken, error) {
+	s, err := r.q.GetInviteTokenByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, repository.ErrNotFound
+		}
+		return nil, err
+	}
+	t := fromSQLCInviteToken(s)
+	return &t, nil
+}
+
 func (r *InviteTokenRepository) MarkAsUsed(ctx context.Context, id uuid.UUID) error {
 	_, err := r.q.MarkInviteTokenAsUsed(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return repository.ErrNotFound
+		}
+		return err
+	}
+	return nil
+}
+
+func (r *InviteTokenRepository) ListAll(ctx context.Context) ([]repository.InviteTokenWithCreator, error) {
+	rows, err := r.q.ListAllInviteTokens(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]repository.InviteTokenWithCreator, len(rows))
+	for i, row := range rows {
+		var creatorName *string
+		if row.CreatorName.Valid {
+			s := row.CreatorName.String
+			creatorName = &s
+		}
+		result[i] = repository.InviteTokenWithCreator{
+			InviteToken: fromSQLCInviteToken(sqlc.InviteToken{
+				ID:        row.ID,
+				Token:     row.Token,
+				CreatedBy: row.CreatedBy,
+				Used:      row.Used,
+				ExpiresAt: row.ExpiresAt,
+				CreatedAt: row.CreatedAt,
+			}),
+			CreatorName: creatorName,
+		}
+	}
+	return result, nil
+}
+
+func (r *InviteTokenRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	err := r.q.DeleteInviteToken(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return repository.ErrNotFound

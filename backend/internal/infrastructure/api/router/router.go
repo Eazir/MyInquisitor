@@ -55,6 +55,7 @@ func Setup(
 				expenses.GET("/:id", expenseH.GetByID)
 				expenses.PUT("/:id", expenseH.Update)
 				expenses.DELETE("/:id", expenseH.Delete)
+				expenses.GET("/:id/monthly/:year/:month", expenseH.GetMonthlyStatus)
 				expenses.PUT("/:id/monthly/:year/:month/toggle", expenseH.TogglePaid)
 			}
 
@@ -91,6 +92,8 @@ func Setup(
 				admin.PUT("/users/:id", adminH.UpdateUser)
 				admin.PUT("/users/:id/activate/:active", adminH.SetActive)
 				admin.POST("/invite", adminH.GenerateInvite)
+			admin.GET("/invites", adminH.ListInviteTokens)
+			admin.DELETE("/invites/:id", adminH.DeleteInviteToken)
 			}
 		}
 	}

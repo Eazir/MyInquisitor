@@ -65,12 +65,33 @@ type CashFlowEntry struct {
 	Out    float64 `json:"out"`
 }
 
+type ExtraExpenseItem struct {
+	Description string  `json:"description"`
+	Amount      float64 `json:"amount"`
+}
+
+type FixedExpenseItem struct {
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Amount    float64 `json:"amount"`
+	Frequency string  `json:"frequency"`
+	DueDay    *int32  `json:"due_day"`
+}
+
 type ProjectionOutput struct {
-	Month            string  `json:"month"`
-	ProjectedIncome  float64 `json:"projected_income"`
-	ProjectedExpenses float64 `json:"projected_expenses"`
-	ProjectedDebts   float64 `json:"projected_debts"`
-	ProjectedBalance float64 `json:"projected_balance"`
+	Month              string             `json:"month"`
+	MonthLabel         string             `json:"month_label"`
+	BaseIncome         float64            `json:"base_income"`
+	IncomeModifier     float64            `json:"income_modifier"`
+	ProjectedIncome    float64            `json:"projected_income"`
+	FixedExpenses      float64            `json:"fixed_expenses"`
+	FixedExpensesList  []FixedExpenseItem `json:"fixed_expenses_list"`
+	ExtraBudgetaryAvg  float64            `json:"extra_budgetary_avg"`
+	ExtraExpensesTotal float64            `json:"extra_expenses_total"`
+	ExtraExpensesList  []ExtraExpenseItem `json:"extra_expenses_list"`
+	DebtPayments       float64            `json:"debt_payments"`
+	TotalExpenses      float64            `json:"total_expenses"`
+	ProjectedBalance   float64            `json:"projected_balance"`
 }
 
 type CreateCategoryInput struct {

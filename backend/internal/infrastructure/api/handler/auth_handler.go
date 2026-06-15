@@ -57,11 +57,24 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	result, err := h.loginUC.Execute(c.Request.Context(), input)
 	if err != nil {
-		if errors.Is(err, appAuth.ErrInvalidCredentials) || errors.Is(err, appAuth.ErrUserInactive) {
-			response.Error(c, http.StatusUnauthorized, "AUTH_ERROR", err.Error())
+		if errors.Is(err, appAuth.ErrEmailNotFound) {
+			response.Error(c, http.StatusNotFound, "EMAIL_NOT_FOUND", err.Error())
 			return
 		}
-		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred")
+		if errors.Is(err, appAuth.ErrInvalidCredentials) {
+			response.Error(c, http.StatusUnauthorized, "WRONG_PASSWORD", err.Error())
+			return
+		}
+		if errors.Is(err, appAuth.ErrUserInactive) {
+			response.Error(c, http.StatusUnauthorized, "INACTIVE_ACCOUNT", err.Error())
+			return
+		}
+		if errors.Is(err, appAuth.ErrAccountIssue) {
+			response.Error(c, http.StatusInternalServerError, "ACCOUNT_ERROR", "account configuration error. please contact support")
+			return
+		}
+		c.Error(err)
+		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred. please try again later")
 		return
 	}
 

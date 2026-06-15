@@ -35,6 +35,7 @@ func toSQLCDebtParams(d *entity.Debt) sqlc.CreateDebtParams {
 		Status:             d.Status,
 		StartDate:          toPGDate(d.StartDate),
 		EndDate:            toPGDatePtr(d.EndDate),
+		DueDay:             toPGInt4(d.DueDay),
 	}
 }
 
@@ -53,6 +54,7 @@ func fromSQLCDebt(s sqlc.Debt) entity.Debt {
 		Status:             s.Status,
 		StartDate:          fromPGDate(s.StartDate),
 		EndDate:            fromPGDatePtr(s.EndDate),
+		DueDay:             fromPGInt4(s.DueDay),
 		CreatedAt:          s.CreatedAt,
 		UpdatedAt:          s.UpdatedAt,
 	}
@@ -115,8 +117,13 @@ func (r *DebtRepository) Update(ctx context.Context, d *entity.Debt) error {
 		CurrentInstallment: d.CurrentInstallment,
 		Status:             d.Status,
 		EndDate:            toPGDatePtr(d.EndDate),
+		StartDate:          toPGDate(d.StartDate),
+		DueDay:             toPGInt4(d.DueDay),
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return repository.ErrNotFound
+		}
 		return err
 	}
 	*d = fromSQLCDebt(updated)
@@ -264,6 +271,29 @@ func (r *DebtMonthlyStatusRepository) Update(ctx context.Context, s *entity.Debt
 	}
 	*s = fromSQLCDebtMonthlyStatus(updated)
 	return nil
+}
+
+func (r *DebtMonthlyStatusRepository) ListUnpaidByUserIDAndDateRange(ctx context.Context, userID uuid.UUID, start, end string) ([]entity.DebtMonthlyStatus, error) {
+	var startDate, endDate pgtype.Date
+	if err := startDate.Scan(start); err != nil {
+		return nil, err
+	}
+	if err := endDate.Scan(end); err != nil {
+		return nil, err
+	}
+	rows, err := r.q.ListUnpaidByUserIDAndDateRange(ctx, sqlc.ListUnpaidByUserIDAndDateRangeParams{
+		UserID: userID,
+		Start:  startDate,
+		End:    endDate,
+	})
+	if err != nil {
+		return nil, err
+	}
+	result := make([]entity.DebtMonthlyStatus, len(rows))
+	for i, row := range rows {
+		result[i] = fromSQLCDebtMonthlyStatus(row)
+	}
+	return result, nil
 }
 
 func (r *DebtMonthlyStatusRepository) Delete(ctx context.Context, id uuid.UUID) error {

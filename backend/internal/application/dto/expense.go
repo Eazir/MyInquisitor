@@ -7,39 +7,42 @@ import (
 )
 
 type CreateExpenseInput struct {
-	CategoryID  *uuid.UUID `json:"category_id"`
-	Name        string     `json:"name" validate:"required"`
-	Description *string    `json:"description,omitempty"`
-	Amount      float64    `json:"amount" validate:"required,gt=0"`
-	Frequency   string     `json:"frequency" validate:"required,oneof=monthly yearly weekly biweekly"`
-	DueDay      *int32     `json:"due_day,omitempty"`
-	StartDate   string     `json:"start_date" validate:"required"`
-	EndDate     *string    `json:"end_date,omitempty"`
+	CategoryID   *uuid.UUID `json:"category_id"`
+	Name         string     `json:"name" validate:"required"`
+	Description  *string    `json:"description,omitempty"`
+	Amount       float64    `json:"amount" validate:"required,gt=0"`
+	Frequency    string     `json:"frequency" validate:"required,oneof=monthly yearly weekly biweekly once"`
+	DueDay       *int32     `json:"due_day,omitempty"`
+	BillingMonth *int32     `json:"billing_month,omitempty"`
+	StartDate    string     `json:"start_date" validate:"required"`
+	EndDate      *string    `json:"end_date,omitempty"`
 }
 
 type UpdateExpenseInput struct {
-	Name        *string  `json:"name,omitempty"`
-	Description *string  `json:"description,omitempty"`
-	Amount      *float64 `json:"amount,omitempty"`
-	Frequency   *string  `json:"frequency,omitempty"`
-	DueDay      *int32   `json:"due_day,omitempty"`
-	Status      *string  `json:"status,omitempty"`
+	Name         *string  `json:"name,omitempty"`
+	Description  *string  `json:"description,omitempty"`
+	Amount       *float64 `json:"amount,omitempty"`
+	Frequency    *string  `json:"frequency,omitempty"`
+	DueDay       *int32   `json:"due_day,omitempty"`
+	BillingMonth *int32   `json:"billing_month,omitempty"`
+	Status       *string  `json:"status,omitempty"`
 }
 
 type ExpenseOutput struct {
-	ID          uuid.UUID  `json:"id"`
-	UserID      uuid.UUID  `json:"user_id"`
-	CategoryID  *uuid.UUID `json:"category_id"`
-	Name        string     `json:"name"`
-	Description *string    `json:"description"`
-	Amount      float64    `json:"amount"`
-	Frequency   string     `json:"frequency"`
-	DueDay      *int32     `json:"due_day"`
-	Status      string     `json:"status"`
-	StartDate   string     `json:"start_date"`
-	EndDate     *string    `json:"end_date"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	ID           uuid.UUID  `json:"id"`
+	UserID       uuid.UUID  `json:"user_id"`
+	CategoryID   *uuid.UUID `json:"category_id"`
+	Name         string     `json:"name"`
+	Description  *string    `json:"description"`
+	Amount       float64    `json:"amount"`
+	Frequency    string     `json:"frequency"`
+	DueDay       *int32     `json:"due_day"`
+	BillingMonth *int32     `json:"billing_month"`
+	Status       string     `json:"status"`
+	StartDate    string     `json:"start_date"`
+	EndDate      *string    `json:"end_date"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
 }
 
 type ToggleExpensePaidInput struct {

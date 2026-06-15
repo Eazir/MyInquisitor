@@ -25,11 +25,15 @@ type AdminUpdateUserInput struct {
 }
 
 type InviteTokenOutput struct {
-	Token     string    `json:"token"`
-	ExpiresAt time.Time `json:"expires_at"`
-	URL       string    `json:"url"`
-	Used      bool      `json:"used"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          uuid.UUID `json:"id"`
+	Token       string    `json:"token"`
+	CreatedBy   uuid.UUID `json:"created_by"`
+	CreatorName *string   `json:"creator_name"`
+	ExpiresAt   time.Time `json:"expires_at"`
+	URL         string    `json:"url"`
+	Used        bool      `json:"used"`
+	CreatedAt   time.Time `json:"created_at"`
+	Expired     bool      `json:"expired"`
 }
 
 type AdminUserOutput struct {

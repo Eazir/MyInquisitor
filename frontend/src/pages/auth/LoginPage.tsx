@@ -27,8 +27,27 @@ export function LoginPage() {
     try {
       await login(email, password);
       navigate('/dashboard', { replace: true });
-    } catch {
-      setError(t('auth.invalidCredentials'));
+    } catch (err: any) {
+      const code = err?.response?.data?.error?.code;
+      switch (code) {
+        case 'EMAIL_NOT_FOUND':
+          setError(t('auth.emailNotFound'));
+          break;
+        case 'WRONG_PASSWORD':
+          setError(t('auth.wrongPassword'));
+          break;
+        case 'INACTIVE_ACCOUNT':
+          setError(t('auth.inactiveAccount'));
+          break;
+        case 'ACCOUNT_ERROR':
+          setError(t('auth.accountError'));
+          break;
+        case 'INTERNAL_ERROR':
+          setError(t('auth.serverError'));
+          break;
+        default:
+          setError(t('auth.invalidCredentials'));
+      }
     } finally {
       setLoading(false);
     }

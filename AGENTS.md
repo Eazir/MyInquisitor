@@ -47,6 +47,16 @@ npm run test       # vitest run (11 tests)
 - To start only the DB for local dev: `sudo docker-compose up -d db` from `./docker/`.
 - **pgx v5.9.2 `pgtype.Numeric.Scan()` does NOT accept `float64`**. Use `strconv.FormatFloat` to string first. All numeric conversions go through `toPGNumeric()` in `persistence/helpers.go` — the single source of truth for this mapping.
 
+## Planning module (added Jun 2026)
+- **Endpoint**: `GET /accounting/projections?months=1&history_months=12`
+- **Interest rate is MONTHLY**: `monthlyRate := interestRate / 100.0` (NO `/12` division). User inputs monthly rate directly.
+- **Debt projection**: from `debt_monthly_status` unpaid records via `ListUnpaidByUserIDAndDateRange` (JOIN to debts for user_id)
+- **Averages**: `sum_of_months / count_of_months_with_data` (non-empty months only, avoids dilution)
+- **Adjustments** stored in `localStorage['myinquisitor_planning']` per-month (no DB). Cache in `sessionStorage['myinquisitor_planning_cache']` for tab-switch persistence.
+- **Month edit**: clicking the month label in the projections table opens a detail view styled like the monthly payments page (summary cards + itemized list). Supports income modifier + add/remove one-time expenses.
+- **Month labels**: Spanish month names hardcoded in `balance.go`.
+- **Defaults**: 1 month projection, 12 history months (1–24 and 1–36 respectively).
+
 ## Auth system — MUST KNOW
 - **Auth middleware** sets `c.Set("user_id", ...)` — note the exact key name. All handlers read `c.Get("user_id")`. If these don't match, the handler gets zero UUID and FK constraints fail (500).
 - **Access token**: JWT with `user_id` + `role` claims, 30m expiry.
@@ -112,4 +122,10 @@ npm run test       # vitest run (11 tests)
 | `frontend/src/components/layout/AppLayout.tsx` | Responsive layout: sidebar drawer, header, backdrop |
 | `frontend/src/components/layout/Sidebar.tsx` | Sidebar with open/close props, transform animation |
 | `frontend/src/components/layout/Header.tsx` | Header with hamburger button, responsive full width |
+| `backend/internal/application/debt/installments.go` | Interest calc: `monthlyRate = rate / 100` (no `/12`) |
+| `backend/internal/application/accounting/balance.go` | `GetProjectionsUseCase` — full monthly breakdown + averages |
+| `backend/internal/infrastructure/persistence/queries/debt_monthly_status.sql` | `ListUnpaidByUserIDAndDateRange` query |
+| `backend/internal/infrastructure/persistence/debt_repo.go` | SQL impl of the above |
+| `frontend/src/pages/planning/PlanningPage.tsx` | Planning page: table, detail view, localStorage + sessionStorage |
+| `frontend/src/services/accounting.ts` | API client with `Projection` / `ExtraExpenseItem` types |
 | `docs/manual-tecnico.md` | Full 10-section technical manual (995 lines) |

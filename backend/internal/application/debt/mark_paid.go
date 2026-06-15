@@ -14,10 +14,11 @@ import (
 type MarkPaidUseCase struct {
 	monthlyRepo repository.DebtMonthlyStatusRepository
 	debtRepo    repository.DebtRepository
+	txRepo      repository.TransactionRepository
 }
 
-func NewMarkPaidUseCase(monthlyRepo repository.DebtMonthlyStatusRepository, debtRepo repository.DebtRepository) *MarkPaidUseCase {
-	return &MarkPaidUseCase{monthlyRepo: monthlyRepo, debtRepo: debtRepo}
+func NewMarkPaidUseCase(monthlyRepo repository.DebtMonthlyStatusRepository, debtRepo repository.DebtRepository, txRepo repository.TransactionRepository) *MarkPaidUseCase {
+	return &MarkPaidUseCase{monthlyRepo: monthlyRepo, debtRepo: debtRepo, txRepo: txRepo}
 }
 
 func (uc *MarkPaidUseCase) Execute(ctx context.Context, debtID uuid.UUID, year, month int, input dto.MarkDebtPaidInput) (*dto.DebtMonthlyStatusOutput, error) {
@@ -58,7 +59,18 @@ func (uc *MarkPaidUseCase) Execute(ctx context.Context, debtID uuid.UUID, year, 
 		return nil, fmt.Errorf("update debt after payment: %w", err)
 	}
 
-	_ = entity.DebtMonthlyStatus{}
+	desc := fmt.Sprintf("Pago de deuda: %s - Cuota %d/%d", debt.Name, status.InstallmentNum, debt.TotalInstallments)
+	tx := &entity.Transaction{
+		UserID:        debt.UserID,
+		Type:          "expense",
+		Amount:        input.AmountPaid,
+		Description:   &desc,
+		ReferenceDate: now,
+	}
+	if err := uc.txRepo.Create(ctx, tx); err != nil {
+		return nil, fmt.Errorf("create transaction: %w", err)
+	}
+
 	return monthlyToOutput(status), nil
 }
 

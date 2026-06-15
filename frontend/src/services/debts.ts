@@ -12,6 +12,7 @@ export interface Debt {
   status: string;
   start_date: string;
   end_date: string | null;
+  due_day?: number | null;
   category_id?: string;
 }
 
@@ -23,6 +24,8 @@ export interface CreateDebtInput {
   total_installments: number;
   start_date: string;
   end_date?: string;
+  due_day?: number;
+  status?: string;
   category_id?: string;
 }
 
@@ -32,6 +35,8 @@ export interface DebtMonthlyStatus {
   month: string;
   installment_num: number;
   amount_due: number;
+  interest_amount: number;
+  principal_amount: number;
   amount_paid: number;
   paid: boolean;
   paid_at: string | null;
